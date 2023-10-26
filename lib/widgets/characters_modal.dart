@@ -91,7 +91,7 @@ class _CharactersModalState extends State<CharactersModal>
                     height: 100,
                     fit: BoxFit.cover,
                     errorWidget: (context, url, error) =>
-                        const Icon(Icons.error),
+                        Image.asset('assets/image/marvel.jpeg'),
                   ),
                 ),
                 Flexible(

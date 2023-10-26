@@ -42,7 +42,13 @@ class ImageGestureDetectorWidget extends StatelessWidget {
                   imageUrl: image,
                   width: width,
                   fit: BoxFit.contain,
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                  errorWidget: (context, url, error) => Center(
+                    child: Image.asset(
+                      'assets/image/marvel.jpeg',
+                      fit: BoxFit.fitHeight,
+                      scale: 0.7,
+                    ),
+                  ),
                 ),
               ),
             ),
