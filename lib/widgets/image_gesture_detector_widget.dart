@@ -6,8 +6,16 @@ import 'package:marvel_characters_app/widgets/characters_modal.dart';
 class ImageGestureDetectorWidget extends StatelessWidget {
   final Character character;
   final String image;
-  const ImageGestureDetectorWidget(
-      {super.key, required this.character, required this.image});
+
+  ImageGestureDetectorWidget(
+      {Key? key, required this.character, required this.image})
+      : super(key: key) {
+    imageCache.clear();
+    imageCache.maximumSize = 100; // Tamaño máximo de la caché
+    imageCache.maximumSizeBytes = 100 << 20; // Tamaño máximo en bytes
+  }
+
+  //  {super.key, required this.character, required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -37,17 +45,15 @@ class ImageGestureDetectorWidget extends StatelessWidget {
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
               ),
-              child: Expanded(
-                child: CachedNetworkImage(
-                  imageUrl: image,
-                  width: width,
-                  fit: BoxFit.contain,
-                  errorWidget: (context, url, error) => Center(
-                    child: Image.asset(
-                      'assets/image/marvel.jpeg',
-                      fit: BoxFit.fitHeight,
-                      scale: 0.7,
-                    ),
+              child: CachedNetworkImage(
+                imageUrl: image,
+                width: width,
+                fit: BoxFit.contain,
+                errorWidget: (context, url, error) => Center(
+                  child: Image.asset(
+                    'assets/image/marvel.jpeg',
+                    fit: BoxFit.fitHeight,
+                    scale: 0.7,
                   ),
                 ),
               ),

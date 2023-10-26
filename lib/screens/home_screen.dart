@@ -1,11 +1,11 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 
 import 'package:flutter/material.dart';
 import 'package:marvel_characters_app/data/models/characters_response.dart';
+import 'package:marvel_characters_app/data/repositories/character_repository.dart';
 import 'package:marvel_characters_app/utils/environment.dart';
+import 'package:marvel_characters_app/views/characters_view.dart';
 import 'package:marvel_characters_app/widgets/image_gesture_detector_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -19,67 +19,75 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> implements CharactersView {
+  late CharacterRepository characterRepository;
   int offset = 0;
-  int limit = 100;
+  int limit = 10;
+
   bool loading = false;
   List<Character> characters = [];
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController scrollController = ScrollController();
+  //CharacterRepository characterRepository = CharacterRepository();
 
   @override
   void initState() {
     super.initState();
-    fetchCharacters();
-  }
-
-  Future<void> fetchCharacters() async {
-    setState(() {
-      loading = true;
-    });
-
-    final response = await http.get(
-      Uri(
-        scheme: 'http',
-        host: BaseUrl.httpBaseUrl,
-        path: BaseUrl.charactersPath,
-        queryParameters: {
-          'apikey': Environment.marvelDbKey,
-          'hash': Environment.marvelHash,
-          'ts': Environment.marvelTS,
-          "limit": limit.toString(),
-          "offset": offset.toString(),
-        },
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      final data = CharactersResponse.fromJson(jsonData);
-      setState(() {
-        characters.addAll(data.data.characters);
-        offset += limit;
-        loading = false;
-      });
-
-      // Si hay más personajes, continúa recuperando
-      if (data.data.total > characters.length) {
-        fetchCharacters();
-      }
-    } else {
-      throw Exception('Failed to load characters');
-    }
+    characterRepository = CharacterRepository(this);
+    characterRepository.fetchCharacters();
   }
 
   void searchCharacters(String query) {
-    List<Character> searchResult = characters
-        .where((character) =>
-            character.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-    // Actualiza la lista de personajes con los resultados de la búsqueda
-    setState(() {
-      characters = searchResult;
-    });
+    characterRepository.searchCharacters(query);
   }
+  // Future<void> fetchCharacters() async {
+  //   setState(() {
+  //     loading = true;
+  //   });
+
+  //   final response = await http.get(
+  //     Uri(
+  //       scheme: 'http',
+  //       host: BaseUrl.httpBaseUrl,
+  //       path: BaseUrl.charactersPath,
+  //       queryParameters: {
+  //         'apikey': Environment.marvelDbKey,
+  //         'hash': Environment.marvelHash,
+  //         'ts': Environment.marvelTS,
+  //         "limit": limit.toString(),
+  //         "offset": offset.toString(),
+  //       },
+  //     ),
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     final jsonData = json.decode(response.body);
+  //     final data = CharactersResponse.fromJson(jsonData);
+  //     setState(() {
+  //       characters.addAll(data.data.characters);
+  //       offset += limit;
+  //       loading = false;
+  //     });
+
+  //     // Si hay más personajes, continúa recuperando
+  //     if (data.data.total > characters.length) {
+  //       fetchCharacters();
+  //     }
+  //   } else {
+  //     throw Exception('Failed to load characters');
+  //   }
+  // }
+
+  // void searchCharacters(String query) {
+  //   List<Character> searchResult = characters
+  //       .where((character) =>
+  //           character.name.toLowerCase().contains(query.toLowerCase()))
+  //       .toList();
+  //   // Actualiza la lista de personajes con los resultados de la búsqueda
+  //   setState(() {
+  //     characters = searchResult;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
-                controller: _searchController,
+                controller: searchController,
                 onChanged: (value) {
                   searchCharacters(value);
                 },
@@ -156,11 +164,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       childAspectRatio: .6,
                       mainAxisSpacing: 4,
                     ),
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: characters.length + 1,
                     itemBuilder: (context, index) {
                       if (index == characters.length) {
                         return GestureDetector(
-                          onTap: fetchCharacters,
+                          onTap: characterRepository.fetchCharacters,
                           child: Center(
                             child: Container(
                               width: MediaQuery.of(context).size.width * .6,
@@ -205,8 +215,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         final thumbnailUrl =
                             getThumbnailUrl("portrait_incredible");
+
                         return ImageGestureDetectorWidget(
-                            character: character, image: thumbnailUrl);
+                            character: characters[index], image: thumbnailUrl);
                         //_ListTileWidget(thumbnailUrl: thumbnailUrl, character: character);
                       }
                     },
@@ -218,12 +229,41 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           setState(() {
             characters.clear();
-            offset = 0;
-            fetchCharacters();
+            //offset = 0;
+            characterRepository.fetchCharacters();
           });
         },
         child: const Icon(Icons.refresh),
       ),
     );
+  }
+
+  @override
+  addItems(List<Character> characters) {
+    setState(() {
+      this.characters.addAll(characters);
+    });
+  }
+
+  @override
+  showLoading() {
+    setState(() {
+      loading = true;
+    });
+  }
+
+  @override
+  hideLoading() {
+    setState(() {
+      loading = false;
+    });
+  }
+
+  @override
+  clearList() {
+    setState(() {
+      characters.clear();
+      searchController.clear();
+    });
   }
 }
