@@ -1,3 +1,4 @@
 # marvel_characters_app
 
-A new Flutter project.
+1. Obtener apikey the marvel: https://developer.marvel.com/
+2. agregar el hash y ts en .env
