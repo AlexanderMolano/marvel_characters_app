@@ -5,13 +5,9 @@ import 'package:marvel_characters_app/utils/environment.dart';
 import 'package:marvel_characters_app/views/characters_view.dart';
 
 class CharacterRepository {
-  final itemsPerPage = 20;
-  var lastTotalReturnedItems = 0;
-  var firstCall = true;
-  var searchTerm = "";
-  int offset = 100;
-  int limit = 100;
-  int page = 0;
+  int pageSize = 20;
+  int totalResults = 0;
+  int offset = 0;
   bool loading = false;
   List<Character> characters = [];
   CharactersView view;
@@ -20,7 +16,7 @@ class CharacterRepository {
   CharacterRepository(this.view, this.numberOffset);
 
   void fetchCharacters() async {
-    if (loading) return; // Evita llamar a la función mientras ya está cargando
+    if (loading) return;
 
     loading = true;
 
@@ -32,45 +28,40 @@ class CharacterRepository {
         'apikey': Environment.marvelDbKey,
         'hash': Environment.marvelHash,
         'ts': Environment.marvelTS,
-        "limit": limit.toString(),
-        "offset": numberOffset
-        //offset.toString(),
+        'limit': pageSize.toString(),
+        'offset': offset.toString(),
       },
     );
-
-    if (!firstCall) {
-      if (limit < itemsPerPage) {
-        List<Character> character = [];
-        view.addItems(character);
-      }
-    }
-
-    view.showLoading();
-    firstCall = false;
 
     try {
       final response = await http.get(uri);
       if (response.statusCode == 200) {
         final responseBody = response.body;
         final decodedData = jsonDecode(responseBody);
-        characters = CharactersResponse.fromJson(decodedData).data.characters;
-        lastTotalReturnedItems = characters.length;
-        limit++;
-        view.addItems(characters);
+
+        totalResults = decodedData['data']['total'];
+        List<Character> newCharacters =
+            CharactersResponse.fromJson(decodedData).data.characters;
+
+        view.addItems(newCharacters);
+        characters.addAll(newCharacters);
+
+        if (characters.length < totalResults) {
+          offset += pageSize;
+        }
+
         view.hideLoading();
-
-        // characters.addAll(characters);
-        offset += limit;
-        // loading = false;
-
-        // Si hay más personajes, continúa recuperando
-
-        print(characters.first.name);
+      } else if (response.statusCode == 404) {
+        throw Exception('No se encontraron personajes');
       } else {
-        throw Exception('Failed to load characters');
+        throw Exception(
+            'Error desconocido al cargar personajes: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching characters: $e');
+      view.showErrorMessage('Error al cargar personajes');
+    } finally {
+      loading = false;
     }
   }
 
@@ -82,7 +73,8 @@ class CharacterRepository {
   }
 
   void refresh() {
-    offset += 20;
+    characters.clear(); // Puedes ajustar esto según tu lógica de recarga
+    offset = 0;
     fetchCharacters();
   }
 }

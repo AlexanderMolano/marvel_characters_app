@@ -3,19 +3,20 @@ import 'package:marvel_characters_app/data/models/characters_response.dart';
 import 'package:marvel_characters_app/data/repositories/character_repository.dart';
 import 'package:marvel_characters_app/views/characters_view.dart';
 import 'package:marvel_characters_app/widgets/image_gesture_detector_widget.dart';
+import 'package:marvel_characters_app/widgets/message_utils.dart';
 
-class HomeFourthoffset extends StatefulWidget {
-  HomeFourthoffset({Key? key}) : super(key: key) {
+class CharactersFirstView extends StatefulWidget {
+  CharactersFirstView({Key? key}) : super(key: key) {
     imageCache.clear();
     imageCache.maximumSize = 100; // Tamaño máximo de la caché
     imageCache.maximumSizeBytes = 100 << 20; // Tamaño máximo en bytes
   }
 
   @override
-  State<HomeFourthoffset> createState() => _HomeScreenState();
+  State<CharactersFirstView> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeFourthoffset>
+class _HomeScreenState extends State<CharactersFirstView>
     implements CharactersView {
   late CharacterRepository characterRepository;
 
@@ -30,7 +31,7 @@ class _HomeScreenState extends State<HomeFourthoffset>
   @override
   void initState() {
     super.initState();
-    characterRepository = CharacterRepository(this, '299');
+    characterRepository = CharacterRepository(this, '0');
     characterRepository.fetchCharacters();
   }
 
@@ -43,8 +44,8 @@ class _HomeScreenState extends State<HomeFourthoffset>
 
   Future<void> refreshCharacters(int limit) async {
     setState(() {
-      offset += 100; // Aumenta el límite según tus necesidades
-      characterRepository.fetchCharacters;
+      offset += 20; // Aumenta el límite según tus necesidades
+      characterRepository.refresh();
     });
   }
 
@@ -121,19 +122,26 @@ class _HomeScreenState extends State<HomeFourthoffset>
                     itemCount: characters.length + 1,
                     itemBuilder: (context, index) {
                       if (index == characters.length) {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              characterRepository.refresh();
-                            });
-                          },
-                          child: Center(
-                            child: Container(),
-                          ),
-                        );
+                        // Elemento adicional al final para mostrar el indicador de carga
+                        return loading
+                            ? Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.black,
+                                ),
+                              )
+                            : GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    refreshCharacters(20);
+                                  });
+                                },
+                                child: Center(
+                                  child: Container(),
+                                ),
+                              );
                       } else {
+                        // Renderizar el elemento normal
                         final character = characters[index];
-
                         getThumbnailUrl(String variant) {
                           return '${character.thumbnail.path}/$variant.${character.thumbnail.extension}';
                         }
@@ -142,8 +150,9 @@ class _HomeScreenState extends State<HomeFourthoffset>
                             getThumbnailUrl("portrait_incredible");
 
                         return ImageGestureDetectorWidget(
-                            character: characters[index], image: thumbnailUrl);
-                        //_ListTileWidget(thumbnailUrl: thumbnailUrl, character: character);
+                          character: characters[index],
+                          image: thumbnailUrl,
+                        );
                       }
                     },
                   ),
@@ -180,6 +189,18 @@ class _HomeScreenState extends State<HomeFourthoffset>
       characters.clear();
       searchController.clear();
     });
+  }
+
+  @override
+  showNoMoreItems(String s) {
+    return MessageUtils.showMessage(context, 'No more info', Colors.white);
+    //return 'No more info';
+  }
+
+  @override
+  showErrorMessage(String s) {
+    return MessageUtils.showMessage(context, 'No info about', Colors.white);
+    //return 'No info about';
   }
 
   bool onNotification(ScrollNotification notification) {

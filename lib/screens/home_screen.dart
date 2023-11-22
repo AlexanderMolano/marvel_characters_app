@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:marvel_characters_app/views/home_view_first_offset.dart';
-import 'package:marvel_characters_app/views/home_view_fourth_offset.dart';
-import 'package:marvel_characters_app/views/home_view_second_offset.dart';
-import 'package:marvel_characters_app/views/home_view_third_offset.dart';
-import 'package:marvel_characters_app/widgets/custom_bottom_navbar.dart';
+import 'package:marvel_characters_app/views/characters_first_view.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = 'home-screen';
@@ -19,42 +15,9 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _tabNames = [
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabNames.length, vsync: this);
-    _tabController.animateTo(widget.pageIndex);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  final viewRoutes = <Widget>[
-    HomeFirstoffset(),
-    HomeSecondoffset(),
-    HomeThirdhoffset(),
-    HomeFourthoffset(),
-  ];
-
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -62,24 +25,9 @@ class _HomeScreenState extends State<HomeScreen>
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.black,
-        bottom: TabBar(
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorWeight: 4,
-          labelColor: Colors.red,
-          labelStyle: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-          controller: _tabController,
-          tabs: _tabNames.map((String name) => Tab(text: name)).toList(),
-        ),
       ),
       backgroundColor: Colors.red,
-      body: TabBarView(
-        controller: _tabController,
-        children: viewRoutes,
-      ),
+      body: CharactersFirstView(),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

@@ -5,4 +5,6 @@ abstract class CharactersView {
   showLoading();
   hideLoading();
   clearList();
+  showNoMoreItems(String s);
+  showErrorMessage(String s);
 }
