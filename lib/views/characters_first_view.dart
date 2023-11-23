@@ -192,12 +192,14 @@ class _CharactersFirstViewState extends State<CharactersFirstView>
   @override
   showNoMoreItems(String s) {
     return MessageUtils.showMessage(context, 'No more info', Colors.white);
+    // add message
     //return 'No more info';
   }
 
   @override
   showErrorMessage(String s) {
     return MessageUtils.showMessage(context, 'No info about', Colors.white);
+    // add message
     //return 'No info about';
   }
 
