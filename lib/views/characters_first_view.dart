@@ -44,7 +44,7 @@ class _CharactersFirstViewState extends State<CharactersFirstView>
 
   Future<void> refreshCharacters(int limit) async {
     setState(() {
-      offset += 20; // Aumenta el límite según tus necesidades
+      offset += 20; 
       characterRepository.refresh();
     });
   }
