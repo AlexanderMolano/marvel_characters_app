@@ -150,7 +150,6 @@ class _CharactersFirstViewState extends State<CharactersFirstView>
 
                         return ImageGestureDetectorWidget(
                             character: characters[index], image: thumbnailUrl);
-                        //_ListTileWidget(thumbnailUrl: thumbnailUrl, character: character);
                       }
                     },
                   ),
